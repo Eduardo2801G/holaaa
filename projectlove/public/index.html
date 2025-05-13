@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Diario para Dos</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Arial', sans-serif;
+      }
+      body {
+        background: linear-gradient(to bottom right, #ffc0cb, #ffe4e1);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .login,
+      .diario {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+      }
+
+      h1 {
+        text-align: center;
+        color: #e91e63;
+        margin-bottom: 20px;
+      }
+
+      input[type="password"],
+      input[type="text"],
+      button {
+        width: 100%;
+        padding: 12px;
+        margin: 10px 0;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+      }
+
+      input[type="password"],
+      input[type="text"] {
+        background-color: #f9f9f9;
+        border: 1px solid #ccc;
+      }
+
+      button {
+        background-color: #e91e63;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #d81b60;
+      }
+
+      .mensajes {
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .mensaje {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 12px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(8px);
+        filter: blur(6px);
+        transition: filter 0.3s ease;
+        cursor: pointer;
+      }
+
+      .mensaje.revelado {
+        filter: none;
+      }
+
+      .autor {
+        font-weight: bold;
+        color: #e91e63;
+      }
+
+      .fecha {
+        font-size: 0.8em;
+        color: #999;
+        margin-bottom: 6px;
+      }
+
+      footer {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 0.9em;
+        color: #777;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Login -->
+    <div class="login" id="login">
+      <h1>💖 Nuestro Diario 💖</h1>
+      <input type="password" id="clave" placeholder="Ingresa la clave" />
+      <button onclick="verificarClave()">Entrar</button>
+    </div>
+
+    <!-- Diario -->
+    <div class="diario" id="diario" style="display: none;">
+      <h1>📔 Mensajes</h1>
+      <input type="text" id="nombre" placeholder="Tu nombre" />
+      <input type="text" id="nuevoMensaje" placeholder="Escribe un mensaje..." />
+      <button onclick="enviarMensaje()">Enviar</button>
+
+      <button onclick="cargarMensajes()">Mostrar mensajes</button>
+
+      <div class="mensajes" id="mensajes"></div>
+    </div>
+
+    <footer>&copy; 2025 Diario para Dos 💌</footer>
+
+    <script>
+      const claveCorrecta = "12345"; // Cambia esta clave si quieres
+      const mensajes = [];
+
+      function verificarClave() {
+        const claveIngresada = document.getElementById("clave").value;
+        if (claveIngresada === claveCorrecta) {
+          document.getElementById("login").style.display = "none";
+          document.getElementById("diario").style.display = "block";
+          cargarMensajes();
+        } else {
+          alert("Clave incorrecta 💔");
+        }
+      }
+
+      function enviarMensaje() {
+        const nombre = document.getElementById("nombre").value.trim();
+        const texto = document.getElementById("nuevoMensaje").value.trim();
+        if (nombre === "" || texto === "") {
+          alert("Por favor, escribe tu nombre y un mensaje.");
+          return;
+        }
+
+        fetch('https://amor-3aj4.onrender.com/mensaje', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ nombre, mensaje: texto }),
+        })
+          .then(response => response.json())
+          .then(data => {
+            alert(`Mensaje guardado con ID: ${data.id}`);
+            document.getElementById("nuevoMensaje").value = ""; // Limpia el input
+          })
+          .catch(err => {
+            console.error('Error:', err);
+            alert('Ocurrió un error al enviar el mensaje');
+          });
+      }
+
+      function cargarMensajes() {
+        fetch('https://amor-3aj4.onrender.com/mensajes')
+          .then(res => res.json())
+          .then(data => {
+            const contenedor = document.getElementById("mensajes");
+            contenedor.innerHTML = ""; // Limpia mensajes anteriores
+            data.forEach((msg) => {
+              const div = document.createElement("div");
+              div.className = "mensaje";
+              div.onclick = () => div.classList.toggle("revelado");
+              div.innerHTML = `
+                <div class="autor">${msg.nombre}</div>
+                <div class="fecha">ID: ${msg.id}</div>
+                <div>${msg.mensaje}</div>
+              `;
+              contenedor.appendChild(div);
+            });
+          })
+          .catch(err => {
+            console.error('Error al cargar los mensajes:', err);
+            alert('Ocurrió un error al cargar los mensajes');
+          });
+      }
+    </script>
+  </body>
+</html>
